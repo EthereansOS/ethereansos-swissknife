@@ -1,0 +1,15 @@
+/**/build
+/**/package-lock.json
+/**/yarn.lock
+/**/yarn-error.log
+/**/node_modules
+/**/lib
+!/contracts/**/lib
+/**/.vscode
+/**/artifacts
+/**/bin
+/**/out
+/**/flat
+/**/.env
+/**/*.env
+/**/tmp

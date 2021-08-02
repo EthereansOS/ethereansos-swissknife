@@ -1,0 +1,27 @@
+{
+  "name": "@ethereansos/swissknife",
+  "version": "1.0.0",
+  "description": "Smart Contracts for general purpose use made with <3 by the EthereansOS team",
+  "scripts": {
+  },
+   "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EthereansOS/ethereansos-swissknife.git"
+  },
+  "homepage": "https://github.com/EthereansOS/ethereansos-swissknife#readme",
+  "bugs": {
+    "url": "https://github.com/EthereansOS/ethereansos-swissknife/issues"
+  },
+  "author": "The EthereansOS team",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "ethereansos"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.2.0"
+  }
+}
