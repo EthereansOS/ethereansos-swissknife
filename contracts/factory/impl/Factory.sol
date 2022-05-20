@@ -3,10 +3,9 @@ pragma solidity >=0.7.0;
 
 import "../model/IFactory.sol";
 import "../../dynamicMetadata/impl/DynamicMetadataCapableElement.sol";
-import { ReflectionUtilities } from "../../lib/GeneralUtilities.sol";
+import "../../lib/Initializer.sol";
 
 contract Factory is IFactory, DynamicMetadataCapableElement {
-    using ReflectionUtilities for address;
 
     address public override modelAddress;
     mapping(address => address) public override deployer;
@@ -36,9 +35,9 @@ contract Factory is IFactory, DynamicMetadataCapableElement {
     }
 
     function deploy(bytes calldata deployData) external payable override virtual returns(address deployedAddress, bytes memory deployedLazyInitResponse) {
-        deployer[deployedAddress = modelAddress.clone()] = msg.sender;
-        emit Deployed(modelAddress, deployedAddress, msg.sender, deployedLazyInitResponse = ILazyInitCapableElement(deployedAddress).lazyInit(deployData));
-        require(ILazyInitCapableElement(deployedAddress).initializer() == address(this));
+        (deployedAddress, deployedLazyInitResponse,) = Initializer.create(abi.encode(modelAddress), deployData);
+        deployer[deployedAddress] = msg.sender;
+        emit Deployed(modelAddress, deployedAddress, msg.sender, deployedLazyInitResponse);
     }
 
     function _factoryLazyInit(bytes memory) internal virtual returns (bytes memory) {
