@@ -2,9 +2,8 @@
   "name": "@ethereansos/swissknife",
   "version": "1.0.0",
   "description": "Smart Contracts for general purpose use made with <3 by the EthereansOS team",
-  "scripts": {
-  },
-   "repository": {
+  "scripts": {},
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/EthereansOS/ethereansos-swissknife.git"
   },
