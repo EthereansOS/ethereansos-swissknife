@@ -138,14 +138,15 @@ library BytesUtilities {
     }
 
     function toString(bytes memory data) internal pure returns(string memory) {
-        bytes memory str = new bytes(2 + data.length * 2);
-        str[0] = "0";
-        str[1] = "x";
+        return string(abi.encodePacked("0x", toStringRaw(data)));
+    }
+
+    function toStringRaw(bytes memory data) internal pure returns(bytes memory str) {
+        str = new bytes(data.length * 2);
         for (uint256 i = 0; i < data.length; i++) {
-            str[2+i*2] = ALPHABET[uint256(uint8(data[i] >> 4))];
-            str[3+i*2] = ALPHABET[uint256(uint8(data[i] & 0x0f))];
+            str[i*2] = ALPHABET[uint256(uint8(data[i] >> 4))];
+            str[i*2+1] = ALPHABET[uint256(uint8(data[i] & 0x0f))];
         }
-        return string(str);
     }
 
     function asSingletonArray(bytes memory a) internal pure returns(bytes[] memory array) {
@@ -344,8 +345,50 @@ library AddressUtilities {
         array[0] = a;
     }
 
-    function toString(address _addr) internal pure returns (string memory) {
-        return _addr == address(0) ? "0x0000000000000000000000000000000000000000" : BytesUtilities.toString(abi.encodePacked(_addr));
+    function toString(address _addr) internal pure returns(string memory) {
+        if(_addr == address(0)) {
+            return "0x0000000000000000000000000000000000000000";
+        }
+        bytes memory str = BytesUtilities.toStringRaw(abi.encodePacked(_addr));
+
+        bytes20 data = bytes20(_addr);
+
+        bool[40] memory caps = _toChecksumCapsFlags(data, keccak256(str));
+
+        uint8 b;
+        uint8 leftNibble;
+        uint8 rightNibble;
+
+        for (uint256 i = 0; i < data.length; i++) {
+            b = uint8(uint160(data) / (2**(8*(19 - i))));
+            leftNibble = b / 16;
+            rightNibble = b - 16 * leftNibble;
+
+            str[i*2] = abi.encodePacked(leftNibble + _getAsciiOffset(leftNibble, caps[i*2]))[0];
+
+            str[i*2+1] = abi.encodePacked(rightNibble + _getAsciiOffset(rightNibble, caps[i*2+1]))[0];
+        }
+        return string(abi.encodePacked("0x", str));
+    }
+
+    function _toChecksumCapsFlags(bytes20 a, bytes32 b) private pure returns(bool[40] memory characterCapitalized) {
+        uint8 leftNibbleAddress;
+        uint8 rightNibbleAddress;
+        uint8 leftNibbleHash;
+        uint8 rightNibbleHash;
+        for (uint256 i; i < a.length; i++) {
+            rightNibbleAddress = uint8(a[i]) % 16;
+            leftNibbleAddress = (uint8(a[i]) - rightNibbleAddress) / 16;
+            rightNibbleHash = uint8(b[i]) % 16;
+            leftNibbleHash = (uint8(b[i]) - rightNibbleHash) / 16;
+            characterCapitalized[i*2] = (leftNibbleAddress > 9 && leftNibbleHash > 7);
+            characterCapitalized[i*2 + 1] = (rightNibbleAddress > 9 && rightNibbleHash > 7);
+        }
+    }
+
+    function _getAsciiOffset(uint8 nibble, bool caps) private pure returns(uint8) {
+        // to convert to ascii characters, add 48 to 0-9, 55 to A-F, & 87 to a-f.
+        return nibble < 10 ? 48 : caps ? 55 : 87;
     }
 }
 
