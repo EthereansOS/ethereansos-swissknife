@@ -1,12 +1,57 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+interface IERC20Full {
+
+    //IERC20
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    //IERC20Metadata
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+
+    //IERC20Burnable
+    function burn(uint256 amount) external;
+    function burnFrom(address account, uint256 amount) external;
+
+    //IERC20Mintable
+    function mint(address account, uint256 amount) external returns (bool);
+    function burn(address account, uint256 amount) external returns (bool);
+
+    //IERC20Permit
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
+    function nonces(address owner) external view returns (uint256);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+}
 
 library BehaviorUtilities {
 
     function randomKey(uint256 i) internal view returns (bytes32) {
-        return keccak256(abi.encode(i, block.timestamp, block.number, tx.origin, tx.gasprice, block.coinbase, block.difficulty, msg.sender, blockhash(block.number - 5)));
+        return keccak256(abi.encode(i, block.timestamp, block.number, tx.origin, tx.gasprice, block.coinbase, block.prevrandao, msg.sender, blockhash(block.number - 5)));
     }
 
     function calculateProjectedArraySizeAndLoopUpperBound(uint256 arraySize, uint256 start, uint256 offset) internal pure returns(uint256 projectedArraySize, uint256 projectedArrayLoopUpperBound) {
@@ -411,18 +456,18 @@ library TransferUtilities {
         if(erc20TokenAddress == address(0)) {
             return account.balance;
         }
-        return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20(erc20TokenAddress).balanceOf.selector, account)), (uint256));
+        return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).balanceOf.selector, account)), (uint256));
     }
 
     function allowance(address erc20TokenAddress, address account, address spender) internal view returns(uint256) {
         if(erc20TokenAddress == address(0)) {
             return 0;
         }
-        return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20(erc20TokenAddress).allowance.selector, account, spender)), (uint256));
+        return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).allowance.selector, account, spender)), (uint256));
     }
 
     function safeApprove(address erc20TokenAddress, address spender, uint256 value) internal {
-        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20(erc20TokenAddress).approve.selector, spender, value));
+        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).approve.selector, spender, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'APPROVE_FAILED');
     }
 
@@ -434,7 +479,7 @@ library TransferUtilities {
             to.submit(value, "");
             return;
         }
-        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20(erc20TokenAddress).transfer.selector, to, value));
+        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transfer.selector, to, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'TRANSFER_FAILED');
     }
 
@@ -446,7 +491,7 @@ library TransferUtilities {
             to.submit(value, "");
             return;
         }
-        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20(erc20TokenAddress).transferFrom.selector, from, to, value));
+        bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transferFrom.selector, from, to, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'TRANSFERFROM_FAILED');
     }
 }

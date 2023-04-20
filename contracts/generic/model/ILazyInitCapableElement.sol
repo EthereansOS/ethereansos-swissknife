@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+interface ILazyInitCapableElement {
 
-interface ILazyInitCapableElement is IERC165 {
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
 
     function lazyInit(bytes calldata lazyInitData) external returns(bytes memory initResponse);
     function initializer() external view returns(address);

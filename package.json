@@ -19,8 +19,5 @@
     "contracts",
     "ethereansos"
   ],
-  "license": "MIT",
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0"
-  }
+  "license": "MIT"
 }

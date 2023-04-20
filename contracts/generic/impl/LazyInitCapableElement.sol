@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity ^0.8.0;
 
 import "../model/ILazyInitCapableElement.sol";
 import { ReflectionUtilities } from "../../lib/GeneralUtilities.sol";
@@ -22,7 +22,6 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
 
     function supportsInterface(bytes4 interfaceId) override external view returns(bool) {
         return
-            interfaceId == type(IERC165).interfaceId ||
             interfaceId == this.supportsInterface.selector ||
             interfaceId == type(ILazyInitCapableElement).interfaceId ||
             interfaceId == this.lazyInit.selector ||
