@@ -75,6 +75,11 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
         _;
     }
 
+    modifier initializerOnly {
+        require(msg.sender == initializer, "unauthorized");
+        _;
+    }
+
     function _authorizedOnly() internal returns(bool) {
         return subjectIsAuthorizedFor(msg.sender, address(this), msg.sig, msg.data, msg.value);
     }
