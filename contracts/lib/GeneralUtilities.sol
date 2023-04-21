@@ -254,6 +254,11 @@ library StringUtilities {
                                                    hex"00000102030405060708090a0b0c0d0e0f101112131415161718190000000000"
                                                    hex"001a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132330000000000";
 
+    function asSingleElementArray(string memory a) internal pure returns(string[] memory array) {
+        array = new string[](1);
+        array[0] = a;
+    }
+
     function isEmpty(string memory test) internal pure returns (bool) {
         return equals(test, "");
     }
@@ -346,6 +351,7 @@ library StringUtilities {
 }
 
 library Uint256Utilities {
+
     function asSingleElementArray(uint256 n) internal pure returns(uint256[] memory array) {
         array = new uint256[](1);
         array[0] = n;
@@ -385,6 +391,7 @@ library Uint256Utilities {
 }
 
 library AddressUtilities {
+
     function asSingleElementArray(address a) internal pure returns(address[] memory array) {
         array = new address[](1);
         array[0] = a;
@@ -479,6 +486,9 @@ library TransferUtilities {
     }
 
     function safeApprove(address erc20TokenAddress, address spender, uint256 value) internal {
+        if(erc20TokenAddress == address(0) || spender == address(0)) {
+            return;
+        }
         bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).approve.selector, spender, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'APPROVE_FAILED');
     }
