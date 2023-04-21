@@ -194,7 +194,7 @@ library BytesUtilities {
         }
     }
 
-    function asSingletonArray(bytes memory a) internal pure returns(bytes[] memory array) {
+    function asSingleElementArray(bytes memory a) internal pure returns(bytes[] memory array) {
         array = new bytes[](1);
         array[0] = a;
     }
@@ -346,7 +346,7 @@ library StringUtilities {
 }
 
 library Uint256Utilities {
-    function asSingletonArray(uint256 n) internal pure returns(uint256[] memory array) {
+    function asSingleElementArray(uint256 n) internal pure returns(uint256[] memory array) {
         array = new uint256[](1);
         array[0] = n;
     }
@@ -385,7 +385,7 @@ library Uint256Utilities {
 }
 
 library AddressUtilities {
-    function asSingletonArray(address a) internal pure returns(address[] memory array) {
+    function asSingleElementArray(address a) internal pure returns(address[] memory array) {
         array = new address[](1);
         array[0] = a;
     }
@@ -439,13 +439,25 @@ library AddressUtilities {
 
 library Bytes32Utilities {
 
-    function asSingletonArray(bytes32 a) internal pure returns(bytes32[] memory array) {
+    function asSingleElementArray(bytes32 a) internal pure returns(bytes32[] memory array) {
         array = new bytes32[](1);
         array[0] = a;
     }
 
     function toString(bytes32 bt) internal pure returns (string memory) {
         return bt == bytes32(0) ?  "0x0000000000000000000000000000000000000000000000000000000000000000" : BytesUtilities.toString(abi.encodePacked(bt));
+    }
+
+    function asString(bytes32 value) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && value[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && value[i] != 0; i++) {
+            bytesArray[i] = value[i];
+        }
+        return string(bytesArray);
     }
 }
 
