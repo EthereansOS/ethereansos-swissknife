@@ -516,4 +516,23 @@ library TransferUtilities {
         bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transferFrom.selector, from, to, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'TRANSFERFROM_FAILED');
     }
+
+    function safeBurn(address erc20TokenAddress, uint256 value) internal {
+        if(erc20TokenAddress == address(0) || value == 0) {
+            return;
+        }
+        (bool result, bytes memory returnData) = erc20TokenAddress.call(abi.encodeWithSelector(0x42966c68, value));//burn(uint256)
+        result = result && (returnData.length == 0 || abi.decode(returnData, (bool)));
+        if(!result) {
+            (result, returnData) = erc20TokenAddress.call(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transfer.selector, address(0), value));
+            result = result && (returnData.length == 0 || abi.decode(returnData, (bool)));
+        }
+        if(!result) {
+            (result, returnData) = erc20TokenAddress.call(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transfer.selector, 0x000000000000000000000000000000000000dEaD, value));
+            result = result && (returnData.length == 0 || abi.decode(returnData, (bool)));
+        }
+        if(!result) {
+            safeTransfer(erc20TokenAddress, 0xdeaDDeADDEaDdeaDdEAddEADDEAdDeadDEADDEaD, value);
+        }
+    }
 }
