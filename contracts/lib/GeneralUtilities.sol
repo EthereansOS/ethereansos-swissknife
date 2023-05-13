@@ -493,34 +493,39 @@ library TransferUtilities {
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'APPROVE_FAILED');
     }
 
-    function safeTransfer(address erc20TokenAddress, address to, uint256 value) internal {
+    function safeTransfer(address erc20TokenAddress, address to, uint256 value) internal returns(uint256 transferred) {
         if(value == 0) {
-            return;
+            return value;
         }
         if(erc20TokenAddress == address(0)) {
             to.submit(value, "");
-            return;
+            return value;
         }
+        uint256 before = balanceOf(erc20TokenAddress, to);
         bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transfer.selector, to, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'TRANSFER_FAILED');
+        return balanceOf(erc20TokenAddress, to) - before;
     }
 
-    function safeTransferFrom(address erc20TokenAddress, address from, address to, uint256 value) internal {
+    function safeTransferFrom(address erc20TokenAddress, address from, address to, uint256 value) internal returns(uint256 transferred) {
         if(value == 0) {
-            return;
+            return 0;
         }
         if(erc20TokenAddress == address(0)) {
             to.submit(value, "");
-            return;
+            return value;
         }
+        uint256 before = balanceOf(erc20TokenAddress, to);
         bytes memory returnData = erc20TokenAddress.submit(0, abi.encodeWithSelector(IERC20Full(erc20TokenAddress).transferFrom.selector, from, to, value));
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'TRANSFERFROM_FAILED');
+        return balanceOf(erc20TokenAddress, to) - before;
     }
 
-    function safeBurn(address erc20TokenAddress, uint256 value) internal {
+    function safeBurn(address erc20TokenAddress, uint256 value) internal returns(uint256 burnt) {
         if(erc20TokenAddress == address(0) || value == 0) {
-            return;
+            return 0;
         }
+        uint256 before = balanceOf(erc20TokenAddress, address(this));
         (bool result, bytes memory returnData) = erc20TokenAddress.call(abi.encodeWithSelector(0x42966c68, value));//burn(uint256)
         result = result && (returnData.length == 0 || abi.decode(returnData, (bool)));
         if(!result) {
@@ -534,5 +539,6 @@ library TransferUtilities {
         if(!result) {
             safeTransfer(erc20TokenAddress, 0xdeaDDeADDEaDdeaDdEAddEADDEAdDeadDEADDEaD, value);
         }
+        return before - balanceOf(erc20TokenAddress, address(this));
     }
 }
