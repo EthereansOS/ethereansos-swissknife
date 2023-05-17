@@ -46,9 +46,9 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
     }
 
     function subjectIsAuthorizedFor(address subject, address location, bytes4 selector, bytes calldata payload, uint256 value) public override virtual view returns(bool) {
-        (bool chidlElementValidationIsConsistent, bool chidlElementValidationResult) = _subjectIsAuthorizedFor(subject, location, selector, payload, value);
-        if(chidlElementValidationIsConsistent) {
-            return chidlElementValidationResult;
+        (bytes memory childElementValidationEncodedValue) = _subjectIsAuthorizedFor(subject, location, selector, payload, value);
+        if(childElementValidationEncodedValue.length != 0) {
+            return childElementValidationEncodedValue.length == 1 ? uint8(childElementValidationEncodedValue[0]) == 1 : abi.decode(childElementValidationEncodedValue, (bool));
         }
         if(subject == owner) {
             return true;
@@ -74,7 +74,7 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
 
     function _supportsInterface(bytes4 selector) internal virtual view returns (bool);
 
-    function _subjectIsAuthorizedFor(address, address, bytes4, bytes calldata, uint256) internal virtual view returns(bool, bool) {
+    function _subjectIsAuthorizedFor(address, address, bytes4, bytes calldata, uint256) internal virtual view returns(bytes memory) {
     }
 
     modifier authorizedOnly {
