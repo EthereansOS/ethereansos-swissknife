@@ -8,7 +8,7 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
     using ReflectionUtilities for address;
 
     address public override initializer;
-    address public override host;
+    address public override owner;
 
     constructor(bytes memory lazyInitData) {
         if(lazyInitData.length > 0) {
@@ -27,15 +27,15 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
             interfaceId == this.lazyInit.selector ||
             interfaceId == this.initializer.selector ||
             interfaceId == this.subjectIsAuthorizedFor.selector ||
-            interfaceId == this.host.selector ||
-            interfaceId == this.setHost.selector ||
+            interfaceId == this.owner.selector ||
+            interfaceId == this.setOwner.selector ||
             _supportsInterface(interfaceId);
     }
 
-    function setHost(address newValue) external override authorizedOnly returns(address oldValue) {
-        oldValue = host;
-        host = newValue;
-        emit Host(oldValue, newValue);
+    function setOwner(address newValue) external override authorizedOnly returns(address oldValue) {
+        oldValue = owner;
+        owner = newValue;
+        emit Owner(oldValue, newValue);
     }
 
     function subjectIsAuthorizedFor(address subject, address location, bytes4 selector, bytes calldata payload, uint256 value) public override virtual view returns(bool) {
@@ -43,21 +43,21 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
         if(chidlElementValidationIsConsistent) {
             return chidlElementValidationResult;
         }
-        if(subject == host) {
+        if(subject == owner) {
             return true;
         }
-        if(!host.isContract()) {
+        if(!owner.isContract()) {
             return false;
         }
-        (bool result, bytes memory resultData) = host.staticcall(abi.encodeWithSelector(ILazyInitCapableElement(host).subjectIsAuthorizedFor.selector, subject, location, selector, payload, value));
+        (bool result, bytes memory resultData) = owner.staticcall(abi.encodeWithSelector(ILazyInitCapableElement(owner).subjectIsAuthorizedFor.selector, subject, location, selector, payload, value));
         return result && abi.decode(resultData, (bool));
     }
 
     function _privateLazyInit(bytes memory lazyInitData) private returns (bytes memory lazyInitResponse) {
         require(initializer == address(0), "init");
         initializer = msg.sender;
-        (host, lazyInitResponse) = abi.decode(lazyInitData, (address, bytes));
-        emit Host(address(0), host);
+        (owner, lazyInitResponse) = abi.decode(lazyInitData, (address, bytes));
+        emit Owner(address(0), owner);
         lazyInitResponse = _lazyInit(lazyInitResponse);
     }
 
