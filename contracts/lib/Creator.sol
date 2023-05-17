@@ -32,17 +32,17 @@ library Creator {
 
 contract GeneralPurposeProxy {
 
-    constructor(address source) payable {
-        assembly {
-            sstore(0xf7e3126f87228afb82c9b18537eed25aaeb8171a78814781c26ed2cfeff27e69, source)
-        }
+    address immutable private _model;
+
+    constructor(address model) payable {
+        _model = model;
     }
 
     fallback() external payable {
+        address model = _model;
         assembly {
-            let _singleton := sload(0xf7e3126f87228afb82c9b18537eed25aaeb8171a78814781c26ed2cfeff27e69)
             calldatacopy(0, 0, calldatasize())
-            let success := delegatecall(gas(), _singleton, 0, calldatasize(), 0, 0)
+            let success := delegatecall(gas(), model, 0, calldatasize(), 0, 0)
             returndatacopy(0, 0, returndatasize())
             switch success
                 case 0 {revert(0, returndatasize())}
