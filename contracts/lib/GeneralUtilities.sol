@@ -46,6 +46,14 @@ interface IERC20Full {
     function nonces(address owner) external view returns (uint256);
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
+
+    //Assets standard
+    function uri() external view returns(string memory);
+
+    function royaltyInfo(uint256 tokenId, uint256 amount) external view returns(address royaltyReceiver, uint256 outputAmount);
+
+    //INTERFACE_ID_ERC2981 = 0x2a55205a;
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }
 
 library BehaviorUtilities {
