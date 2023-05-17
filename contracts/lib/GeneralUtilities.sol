@@ -45,6 +45,8 @@ interface IERC20Full {
 
     function nonces(address owner) external view returns (uint256);
 
+    function TYPEHASH_PERMIT() external view returns (bytes32);
+
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
     //Assets standard
