@@ -1,7 +1,7 @@
 {
-  "name": "@ethereansos/swissknife",
+  "name": "@nonnation/swissknife",
   "version": "1.0.0",
-  "description": "Smart Contracts for general purpose use made with <3 by the EthereansOS team",
+  "description": "Smart Contracts for general purpose use made with <3 by the NONNation team",
   "scripts": {},
   "repository": {
     "type": "git",
@@ -11,13 +11,13 @@
   "bugs": {
     "url": "https://github.com/EthereansOS/ethereansos-swissknife/issues"
   },
-  "author": "The EthereansOS team",
+  "author": "The NONNation team",
   "keywords": [
     "solidity",
     "ethereum",
     "smart",
     "contracts",
-    "ethereansos"
+    "nonnation"
   ],
   "license": "MIT"
 }
