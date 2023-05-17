@@ -8,10 +8,11 @@ interface ILazyInitCapableElement {
     function lazyInit(bytes calldata lazyInitData) external returns(bytes memory initResponse);
     function initializer() external view returns(address);
 
-    event Owner(address indexed from, address indexed to);
+    event OwnershipTransferred(address indexed oldOwner, address indexed newOwner);
 
     function owner() external view returns(address);
-    function setOwner(address newValue) external returns(address oldValue);
+    function transferOwnership(address newValue) external;
+    function renounceOwnership() external;
 
     function subjectIsAuthorizedFor(address subject, address location, bytes4 selector, bytes calldata payload, uint256 value) external view returns(bool);
 }

@@ -28,14 +28,21 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
             interfaceId == this.initializer.selector ||
             interfaceId == this.subjectIsAuthorizedFor.selector ||
             interfaceId == this.owner.selector ||
-            interfaceId == this.setOwner.selector ||
+            interfaceId == this.transferOwnership.selector ||
+            interfaceId == this.renounceOwnership.selector ||
             _supportsInterface(interfaceId);
     }
 
-    function setOwner(address newValue) external override authorizedOnly returns(address oldValue) {
-        oldValue = owner;
-        owner = newValue;
-        emit Owner(oldValue, newValue);
+    function transferOwnership(address newOwner) external override virtual onlyOwner {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        _transferOwnership(newOwner);
+    }
+
+    function renounceOwnership() external override virtual onlyOwner {
+        _transferOwnership(address(0));
     }
 
     function subjectIsAuthorizedFor(address subject, address location, bytes4 selector, bytes calldata payload, uint256 value) public override virtual view returns(bool) {
@@ -57,7 +64,7 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
         require(initializer == address(0), "init");
         initializer = msg.sender;
         (owner, lazyInitResponse) = abi.decode(lazyInitData, (address, bytes));
-        emit Owner(address(0), owner);
+        emit OwnershipTransferred(address(0), owner);
         lazyInitResponse = _lazyInit(lazyInitResponse);
     }
 
@@ -80,7 +87,18 @@ abstract contract LazyInitCapableElement is ILazyInitCapableElement {
         _;
     }
 
+    modifier onlyOwner {
+        require(msg.sender == owner, "unauthorized");
+        _;
+    }
+
     function _authorizedOnly() internal returns(bool) {
         return subjectIsAuthorizedFor(msg.sender, address(this), msg.sig, msg.data, msg.value);
+    }
+
+    function _transferOwnership(address newOwner) private {
+        address oldOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
     }
 }
