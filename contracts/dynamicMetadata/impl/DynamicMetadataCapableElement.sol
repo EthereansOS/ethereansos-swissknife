@@ -29,7 +29,7 @@ abstract contract DynamicMetadataCapableElement is IDynamicMetadataCapableElemen
             _dynamicMetadataElementSupportsInterface(interfaceId);
     }
 
-    function uri() external override view returns(string memory) {
+    function uri() public virtual override view returns(string memory) {
         return _uri(plainUri, "");
     }
 
