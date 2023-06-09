@@ -7,7 +7,9 @@ import "../../lib/Initializer.sol";
 
 contract Factory is IFactory, DynamicMetadataCapableElement {
 
+    /// @notice address of the model contract
     address public override modelAddress;
+    /// @notice Maps the address of the cloned contract to the msg.sender who cloned it. 
     mapping(address => address) public override deployer;
 
     constructor(bytes memory lazyInitData) DynamicMetadataCapableElement(lazyInitData) {
@@ -29,11 +31,16 @@ contract Factory is IFactory, DynamicMetadataCapableElement {
             _factorySupportsInterface(interfaceId);
     }
 
+    /// @notice changes the modelAddress of the Factory
     function setModelAddress(address newValue) external override authorizedOnly returns(address oldValue) {
         oldValue = modelAddress;
         modelAddress = newValue;
     }
 
+    /// @notice Creates a generalPurposeProxy of the modelAddress and calls its lazyInit method (see Initializer.sol)
+    /// @param deployData data passed to the proxy's lazyInit function
+    /// @return deployedAddress address of the newly created proxy
+    /// @return deployedLazyInitResponse returned by the proxy's lazyInit function
     function deploy(bytes calldata deployData) public payable override virtual returns(address deployedAddress, bytes memory deployedLazyInitResponse) {
         (deployedAddress, deployedLazyInitResponse,) = Initializer.createAndInitialize(msg.sender, abi.encode(modelAddress), _buildLazyInitData(deployData));
         deployer[deployedAddress] = msg.sender;

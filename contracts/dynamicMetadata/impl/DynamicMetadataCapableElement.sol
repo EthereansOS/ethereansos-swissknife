@@ -7,7 +7,16 @@ import "../../generic/impl/LazyInitCapableElement.sol";
 
 abstract contract DynamicMetadataCapableElement is IDynamicMetadataCapableElement, LazyInitCapableElement {
 
+    /** @notice This string may contain a hyperlink, such as a common IPFS or arweave link, 
+        or it can be an ABI encoded string containing the address of a custom renderer contract 
+        and the necessary rendering data, used for custom on-chain rendering. 
+     */ 
     string public override plainUri;
+    /** @notice The address of a contract that is called when anyone attempts to retrieve the uri 
+        of a dynamicMetadataCapableElement using the uri() function. If a resolver is specified, 
+        it will attempt to use the renderer contained in the plainUri. If the renderer fails, 
+        the resolver will simply return the plainUri string.
+     */
     address public override dynamicUriResolver;
 
     constructor(bytes memory lazyInitData) LazyInitCapableElement(lazyInitData) {
@@ -29,15 +38,18 @@ abstract contract DynamicMetadataCapableElement is IDynamicMetadataCapableElemen
             _dynamicMetadataElementSupportsInterface(interfaceId);
     }
 
+    /// @notice return the plainUri if dynamicUriResolver is the zero address, otherwise it will return the result of the resolver’s resolve function. 
     function uri() public virtual override view returns(string memory) {
         return _uri(plainUri, "");
     }
 
+    /// @notice set a new plainUri
     function setUri(string calldata newValue) external override authorizedOnly returns (string memory oldValue) {
         oldValue = plainUri;
         plainUri = newValue;
     }
 
+    /// @notice set a new dynamicUriResolver address
     function setDynamicUriResolver(address newValue) external override authorizedOnly returns(address oldValue) {
         oldValue = dynamicUriResolver;
         dynamicUriResolver = newValue;

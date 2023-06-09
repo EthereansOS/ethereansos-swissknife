@@ -59,11 +59,21 @@ interface IERC20Full {
 }
 
 library BehaviorUtilities {
-
+    /** @notice Generates a “random” bytes32 value by hashing an arbitrary uint256 plus transaction and block information
+        @param i an arbitrary uint256
+        @return bytes32 a keccak256 hash
+      */
     function randomKey(uint256 i) internal view returns (bytes32) {
         return keccak256(abi.encode(i, block.timestamp, block.number, tx.origin, tx.gasprice, block.coinbase, block.prevrandao, msg.sender, blockhash(block.number - 5)));
     }
 
+    /** @notice used to safely calculate the loop size for the purpose of iterating through a subset of an array
+        @param arraySize the size of the array through which to iterate
+        @param start the index at which to start iterating
+        @param offset the maximum number of items to iterate through
+        @return projectedArraySize the actual size of the array subset (i.e., not greater than arraySize - start)
+        @return projectedArrayLoopUpperBound whichever is smaller between arraySize and (start + offset)
+     */
     function calculateProjectedArraySizeAndLoopUpperBound(uint256 arraySize, uint256 start, uint256 offset) internal pure returns(uint256 projectedArraySize, uint256 projectedArrayLoopUpperBound) {
         if(arraySize != 0 && start < arraySize && offset != 0) {
             uint256 length = start + offset;
@@ -76,6 +86,11 @@ library BehaviorUtilities {
 
 library ReflectionUtilities {
 
+    /** @notice Performs a staticcall
+        @param subject address on which to perform the staticcall
+        @param inputData bytes passed to the staticcall
+        @return returnData response of the staticcall
+     */
     function read(address subject, bytes memory inputData) internal view returns(bytes memory returnData) {
         bool result;
         (result, returnData) = subject.staticcall(inputData);
@@ -86,6 +101,11 @@ library ReflectionUtilities {
         }
     }
 
+    /** @notice Performs a low-level call
+        @param subject address on which to perform the ccall
+        @param inputData bytes passed to the call
+        @return returnData response of the low-level call
+     */
     function submit(address subject, uint256 value, bytes memory inputData) internal returns(bytes memory returnData) {
         bool result;
         (result, returnData) = subject.call{value : value}(inputData);
@@ -96,6 +116,7 @@ library ReflectionUtilities {
         }
     }
 
+    /// @notice returns true if the subject address is a contract
     function isContract(address subject) internal view returns (bool) {
         if(subject == address(0)) {
             return false;
@@ -107,6 +128,9 @@ library ReflectionUtilities {
         return codeLength > 0;
     }
 
+    /// @notice creates a clone of a contract
+    /// @param originalContract the address of the contract to clone
+    /// @return copyContract the address of the newly created clone
     function clone(address originalContract) internal returns(address copyContract) {
         assembly {
             mstore(
@@ -130,6 +154,9 @@ library BytesUtilities {
     bytes private constant ALPHABET = "0123456789abcdef";
     string internal constant BASE64_ENCODER_DATA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
+    /// @notice Converts a bytes parameter into an address. The bytes should be of length 20 (abi.encodePacked(address)) or length 32 (abi.encode(address))
+    /// @param b bytes to convert
+    /// @return address the converted address
     function asAddress(bytes memory b) internal pure returns(address) {
         if(b.length == 0) {
             return address(0);
@@ -144,40 +171,53 @@ library BytesUtilities {
         return abi.decode(b, (address));
     }
 
+    /// @notice decodes bytes as a list of addresses
+    /// @param b bytes to decode
+    /// @return callResult list of addresses
     function asAddressArray(bytes memory b) internal pure returns(address[] memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (address[]));
         }
     }
 
+    /// @notice converts bytes to bool 
+    /// @param bs bytes to convert
+    /// @return bool true if the value of the uint256 conversion of the bytes is not zero
     function asBool(bytes memory bs) internal pure returns(bool) {
         return asUint256(bs) != 0;
     }
 
+    /// @notice converts bytes to a list of bool
+    /// @param b bytes to convert
+    /// @return callResult a list of bool
     function asBoolArray(bytes memory b) internal pure returns(bool[] memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (bool[]));
         }
     }
 
+    /// @notice Converts a bytes parameter into a bytes array 
     function asBytesArray(bytes memory b) internal pure returns(bytes[] memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (bytes[]));
         }
     }
 
+    /// @notice Converts a bytes parameter into a string value.
     function asString(bytes memory b) internal pure returns(string memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (string));
         }
     }
 
+    /// @notice Converts a bytes parameter into a string array.
     function asStringArray(bytes memory b) internal pure returns(string[] memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (string[]));
         }
     }
 
+    /// @notice Converts a bytes parameter into a uint256.
     function asUint256(bytes memory bs) internal pure returns(uint256 x) {
         if (bs.length >= 32) {
             assembly {
@@ -186,16 +226,19 @@ library BytesUtilities {
         }
     }
 
+    /// @notice Converts a bytes parameter into a uint256 array.
     function asUint256Array(bytes memory b) internal pure returns(uint256[] memory callResult) {
         if(b.length > 0) {
             return abi.decode(b, (uint256[]));
         }
     }
 
+    /// @notice Transforms the hexadecimal bytes data into its text string value adding “0x” at first.
     function toString(bytes memory data) internal pure returns(string memory) {
         return string(abi.encodePacked("0x", toStringRaw(data)));
     }
 
+    /// @notice Transforms the hexadecimal bytes data into its text string value.
     function toStringRaw(bytes memory data) internal pure returns(bytes memory str) {
         str = new bytes(data.length * 2);
         for (uint256 i = 0; i < data.length; i++) {
@@ -204,11 +247,13 @@ library BytesUtilities {
         }
     }
 
+    /// @notice Converts a bytes parameter into a bytes[](1) array with array[0] = a.
     function asSingleElementArray(bytes memory a) internal pure returns(bytes[] memory array) {
         array = new bytes[](1);
         array[0] = a;
     }
 
+    /// @notice Transforms a bytes parameter into its string Base64 value.
     function toBase64(bytes memory data) internal pure returns (string memory) {
         if (data.length == 0) return '';
 
@@ -264,19 +309,25 @@ library StringUtilities {
                                                    hex"00000102030405060708090a0b0c0d0e0f101112131415161718190000000000"
                                                    hex"001a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132330000000000";
 
+    /// @notice returns an array with one element which is the passed string
     function asSingleElementArray(string memory a) internal pure returns(string[] memory array) {
         array = new string[](1);
         array[0] = a;
     }
 
+    /// @notice returns true if the passed string is ""
     function isEmpty(string memory test) internal pure returns (bool) {
         return equals(test, "");
     }
 
+    /// @notice returns true if the hash of the packed encoded strings are equal
     function equals(string memory a, string memory b) internal pure returns(bool) {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
+    /// @notice converts a string to lowercase
+    /// @param str the original string
+    /// @return string the lowercase string
     function toLowerCase(string memory str) internal pure returns(string memory) {
         bytes memory bStr = bytes(str);
         for (uint256 i = 0; i < bStr.length; i++) {
@@ -285,6 +336,7 @@ library StringUtilities {
         return string(bStr);
     }
 
+    /// @notice Converts a string parameter into a string bytes value.
     function asBytes(string memory str) internal pure returns(bytes memory toDecode) {
         bytes memory data = abi.encodePacked(str);
         if(data.length == 0 || data[0] != "0" || (data[1] != "x" && data[1] != "X")) {
@@ -298,10 +350,12 @@ library StringUtilities {
         }
     }
 
+    /// @notice Transforms a string parameter into its string Base64 value.
     function toBase64(string memory input) internal pure returns(string memory) {
         return BytesUtilities.toBase64(abi.encodePacked(input));
     }
 
+    /// @notice Transforms a Base64 string parameter into its bytes value.
     function fromBase64(string memory _data) internal pure returns (bytes memory) {
         bytes memory data = bytes(_data);
 
@@ -362,15 +416,18 @@ library StringUtilities {
 
 library Uint256Utilities {
 
+    /// @notice returns an array with one element which is the passed uint256
     function asSingleElementArray(uint256 n) internal pure returns(uint256[] memory array) {
         array = new uint256[](1);
         array[0] = n;
     }
 
+    /// @notice Transforms a uint256 parameter into its hexadecimal string value.
     function toHex(uint256 _i) internal pure returns (string memory) {
         return BytesUtilities.toString(abi.encodePacked(_i));
     }
 
+    /// @notice Transforms a uint256 parameter into its string value.
     function toString(uint256 _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
@@ -402,11 +459,13 @@ library Uint256Utilities {
 
 library AddressUtilities {
 
+    /// @notice returns an array with one element which is the passed address
     function asSingleElementArray(address a) internal pure returns(address[] memory array) {
         array = new address[](1);
         array[0] = a;
     }
 
+    /// @notice Transforms an address parameter into its string value
     function toString(address _addr) internal pure returns(string memory) {
         if(_addr == address(0)) {
             return "0x0000000000000000000000000000000000000000";
@@ -456,15 +515,18 @@ library AddressUtilities {
 
 library Bytes32Utilities {
 
+    /// @notice returns an array with a single element which is the passed bytes32
     function asSingleElementArray(bytes32 a) internal pure returns(bytes32[] memory array) {
         array = new bytes32[](1);
         array[0] = a;
     }
 
+    /// @notice Transforms a bytes32 into its text string value adding “0x” at first.
     function toString(bytes32 bt) internal pure returns (string memory) {
         return bt == bytes32(0) ?  "0x0000000000000000000000000000000000000000000000000000000000000000" : BytesUtilities.toString(abi.encodePacked(bt));
     }
 
+    /// @notice Transforms a packed bytes32 value to its unpadded string value
     function asString(bytes32 value) internal pure returns (string memory) {
         uint8 i = 0;
         while(i < 32 && value[i] != 0) {
@@ -481,6 +543,7 @@ library Bytes32Utilities {
 library TransferUtilities {
     using ReflectionUtilities for address;
 
+    /// @notice Returns the balance uint256 amount of an account address for a specific ERC20 token
     function balanceOf(address erc20TokenAddress, address account) internal view returns(uint256) {
         if(erc20TokenAddress == address(0)) {
             return account.balance;
@@ -488,6 +551,7 @@ library TransferUtilities {
         return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).balanceOf.selector, account)), (uint256));
     }
 
+    /// @notice Returns the remaining number of tokens that spender will be allowed to spend on behalf of account for a specific ERC20 token.
     function allowance(address erc20TokenAddress, address account, address spender) internal view returns(uint256) {
         if(erc20TokenAddress == address(0)) {
             return 0;
@@ -495,6 +559,7 @@ library TransferUtilities {
         return abi.decode(erc20TokenAddress.read(abi.encodeWithSelector(IERC20Full(erc20TokenAddress).allowance.selector, account, spender)), (uint256));
     }
 
+    /// @notice Sets value as the allowance of spender over the caller’s tokens (for that specific erc20TokeAddress).
     function safeApprove(address erc20TokenAddress, address spender, uint256 value) internal {
         if(erc20TokenAddress == address(0) || spender == address(0)) {
             return;
@@ -503,6 +568,7 @@ library TransferUtilities {
         require(returnData.length == 0 || abi.decode(returnData, (bool)), 'APPROVE_FAILED');
     }
 
+    /// @notice Move `value` tokens (for that specific `erc20TokeAddress`) to the `to` address receiver. This method supports ETH transfer passing `erc20TokeAddress` as `address(0)`.
     function safeTransfer(address erc20TokenAddress, address to, uint256 value) internal returns(uint256 transferred) {
         if(value == 0) {
             return value;
@@ -517,6 +583,7 @@ library TransferUtilities {
         return balanceOf(erc20TokenAddress, to) - before;
     }
 
+    /// @notice Move `value` tokens (for that specific erc20TokeAddress) from the address `from` to the `to` address receiver. This method supports ETH transfer passing erc20TokeAddress as address(0).
     function safeTransferFrom(address erc20TokenAddress, address from, address to, uint256 value) internal returns(uint256 transferred) {
         if(value == 0) {
             return 0;
@@ -531,6 +598,9 @@ library TransferUtilities {
         return balanceOf(erc20TokenAddress, to) - before;
     }
 
+    /** @notice burns an ERC20 token, first attempting the burn function, if not supported, then attempts to call `transfer` to addresses: address(0), 0x000000000000000000000000000000000000dEaD
+        Finally, if these fail, performs `safeTransfer` (TransferUtilities) to 0xdeaDDeADDEaDdeaDdEAddEADDEAdDeadDEADDEaD
+     */
     function safeBurn(address erc20TokenAddress, uint256 value) internal returns(uint256 burnt) {
         if(erc20TokenAddress == address(0) || value == 0) {
             return 0;

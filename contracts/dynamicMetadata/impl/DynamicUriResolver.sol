@@ -9,6 +9,7 @@ import { StringUtilities } from "../../lib/GeneralUtilities.sol";
 contract DynamicUriResolver is IDynamicUriResolver {
     using StringUtilities for string;
 
+    ///@notice Attempts to call the render function using the address passed in the plainUri, and returns the plainUri instead if this fails. 
     function resolve(address subject, string calldata plainUri, bytes calldata inputData, address caller) override external view returns(string memory) {
         if(msg.sender != address(this)) {
             try this.resolve(subject, plainUri, inputData, caller) returns (string memory renderedUri) {
