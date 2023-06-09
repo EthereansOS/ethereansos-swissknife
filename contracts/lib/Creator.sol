@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 library Creator {
 
-    event Source(address indexed sender, address indexed source);
-    event Created(address indexed sender, address indexed source, address indexed destination);
+    event Source(address indexed creator, address indexed source);
+    event Created(address indexed creator, address indexed source, address indexed destination);
 
-    function create(bytes memory sourceAddressOrBytecode) external returns(address destination, address source) {
+    function create(address creator, bytes memory sourceAddressOrBytecode) external returns(address destination, address source) {
         if(sourceAddressOrBytecode.length == 32) {
             source = abi.decode(sourceAddressOrBytecode, (address));
         } else if(sourceAddressOrBytecode.length == 20) {
@@ -17,7 +17,7 @@ library Creator {
             assembly {
                 source := create(0, add(sourceAddressOrBytecode, 32), mload(sourceAddressOrBytecode))
             }
-            emit Source(msg.sender, source);
+            emit Source(creator, source);
         }
         require(source != address(0), "source");
         uint256 codeSize;
@@ -26,7 +26,7 @@ library Creator {
         }
         require(codeSize > 0, "source");
         destination = address(new GeneralPurposeProxy{value : msg.value}(source));
-        emit Created(msg.sender, source, destination);
+        emit Created(creator, source, destination);
     }
 }
 

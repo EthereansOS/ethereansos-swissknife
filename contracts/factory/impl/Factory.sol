@@ -34,10 +34,13 @@ contract Factory is IFactory, DynamicMetadataCapableElement {
         modelAddress = newValue;
     }
 
-    function deploy(bytes calldata deployData) external payable override virtual returns(address deployedAddress, bytes memory deployedLazyInitResponse) {
-        (deployedAddress, deployedLazyInitResponse,) = Initializer.create(abi.encode(modelAddress), deployData);
+    function deploy(bytes calldata deployData) public payable override virtual returns(address deployedAddress, bytes memory deployedLazyInitResponse) {
+        (deployedAddress, deployedLazyInitResponse,) = Initializer.createAndInitialize(msg.sender, abi.encode(modelAddress), _buildLazyInitData(deployData));
         deployer[deployedAddress] = msg.sender;
-        emit Deployed(modelAddress, deployedAddress, msg.sender, deployedLazyInitResponse);
+    }
+
+    function _buildLazyInitData(bytes memory deployData) internal virtual returns(bytes memory lazyInitData) {
+        return deployData;
     }
 
     function _factoryLazyInit(bytes memory) internal virtual returns (bytes memory) {

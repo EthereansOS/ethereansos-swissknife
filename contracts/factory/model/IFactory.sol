@@ -5,8 +5,6 @@ import "../../dynamicMetadata/model/IDynamicMetadataCapableElement.sol";
 
 interface IFactory is IDynamicMetadataCapableElement {
 
-    event Deployed(address indexed modelAddress, address indexed deployedAddress, address indexed deployer, bytes deployedLazyInitResponse);
-
     function modelAddress() external view returns(address);
     function setModelAddress(address newValue) external returns(address oldValue);
 

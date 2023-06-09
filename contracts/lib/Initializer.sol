@@ -6,12 +6,16 @@ import "../generic/model/ILazyInitCapableElement.sol";
 
 library Initializer {
 
-    event Created(address indexed destination, bytes lazyInitResponse);
+    event Initialized(address indexed destination, bytes lazyInitData, bytes lazyInitResponse);
 
-    function create(bytes memory sourceAddressOrBytecode, bytes memory lazyInitData) external returns(address destination, bytes memory lazyInitResponse, address source) {
-        (destination, source) = Creator.create(sourceAddressOrBytecode);
+    function createAndInitialize(address creator, bytes memory sourceAddressOrBytecode, bytes memory lazyInitData) external returns(address destination, bytes memory lazyInitResponse, address source) {
+        (destination, source) = Creator.create(creator, sourceAddressOrBytecode);
+        lazyInitResponse = initialize(destination, lazyInitData);
+    }
+
+    function initialize(address destination, bytes memory lazyInitData) public returns(bytes memory lazyInitResponse) {
         lazyInitResponse = ILazyInitCapableElement(destination).lazyInit(lazyInitData);
         require(ILazyInitCapableElement(destination).initializer() == address(this));
-        emit Created(destination, lazyInitResponse);
+        emit Initialized(destination, lazyInitData, lazyInitResponse);
     }
 }
